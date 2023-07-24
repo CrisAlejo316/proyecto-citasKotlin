@@ -13,41 +13,37 @@ import java.time.Instant
 
 @Service
 class AppointmentService {
+   @Autowired
+    private lateinit var patientService: PatientService
+
+    @Autowired
+    private lateinit var doctorService: DoctorService
+
     @Autowired
     private lateinit var appointmentRepository: AppointmentRepository
 
-    @Autowired
-    private lateinit var patientRepository: PatientRepository
-
-    fun createAppointment(request: CreateAppointmentRequest): CreateAppointmentResponse{
-
-        val especialidad = appointmentRepository.getDoctorpecialidad(request.idDoctor)
-
-        if (especialidad.equals(request.especialidad)){
-            print(request.idPaciente)
-            val appointment = appointmentRepository.save(
-                Appointment(
-                    horario = request.horario,
-                    especialidad = request.especialidad,
-                    doc = request.idDoctor,
-                    idPac = request.idPaciente,
+    fun createAppointment(request: CreateAppointmentRequest): String {
+        try {
+            var doctor = doctorService.getDoctorById(request.idDoctor)
+            var patient = patientService.getPatientByIdentificacion(request.idPaciente)
+            val especialidad = appointmentRepository.getDoctorEspecialidad(request.idDoctor)
+            if (especialidad.equals(request.especialidad)) {
+                val appointment = appointmentRepository.save(
+                    Appointment(
+                        horario = request.horario,
+                        especialidad = request.especialidad,
+                        doc = request.idDoctor,
+                        idPac = request.idPaciente,
+                    )
                 )
-            )
-            return CreateAppointmentResponse(
-                idPaciente = request.idPaciente,
-                especialidad = request.especialidad,
-                doctor = "Carlos",
-                consultorio = 101,
-                horario = request.horario
-            )
+                return "Appointment created successfully"
+            }
+            return "Ups, something was wrong"
+        }catch(e: EmptyResultDataAccessException){
+            throw Error("Patient not found")
+        }catch(e: Error){
+            throw Error(e.message)
         }
-        return CreateAppointmentResponse(
-            idPaciente = "1",
-            especialidad = request.especialidad,
-            doctor = "Carlos",
-            consultorio = 101,
-            horario = "16"
-        )
     }
 
     fun getAllAppointments(): List<Appointment>{
@@ -55,22 +51,42 @@ class AppointmentService {
         return response
     }
 
-    fun getAppointmentById(id: Long): List<Appointment>{
-        var citas = appointmentRepository.getAppointmentById(id)
-        return citas
+    fun getAppointmentById(id: Long): Appointment {
+        var appointment = appointmentRepository.findByIdOrNull(id)
+        if (appointment !== null){
+            return appointment
+        }
+        throw Error("Appointment not found")
     }
 
     fun updateAppointment(id: Long): CreateAppointmentResponse{
-        return CreateAppointmentResponse(
-            idPaciente = "1",
-            especialidad = "Test",
-            doctor = "Carlos",
-            consultorio = 101,
-            horario = "16"
-        )
+        try{
+            val appointment = getAppointmentById(id)
+            appointment.horario = request.horario
+            val updateAppointment = appointmentRepository.save(appointment)
+            val doctor = doctorService.getDoctorById(updateAppointment.doc)
+            return CreateAppointmentResponse(
+                idPaciente = updateAppointment.idPac,
+                horario = updateAppointment.horario,
+                doctor = doctor.nombre,
+                especialidad = updateAppointment.especialidad,
+                consultorio = doctor.consultorio
+            )
+        } catch (e: Error){
+            throw Error(e.message)
+        }
     }
 
     fun deleteAppointment(id: Long): Unit{
-        var delete = appointmentRepository.deleteAppointmentByById(id)
+       try {
+            getAppointmentById(id)
+            appointmentRepository.deleteAppointmentByById(id)
+            return "El registro se ha borrado con exito"
+        } catch (e: DataAccessException) {
+            return "El registro se ha borrado con exito"
+        } catch (e: Error) {
+            return "El registro no existe en la base de datos"
+        } 
     }
+	
 }

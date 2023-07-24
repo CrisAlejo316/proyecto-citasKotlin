@@ -24,6 +24,6 @@ open class Patient (
     open var identificacion: String,
 
     @Column(name = "telefono")
-    open var telefono: Long,
+    open var telefono: Long? = null,
 )
 

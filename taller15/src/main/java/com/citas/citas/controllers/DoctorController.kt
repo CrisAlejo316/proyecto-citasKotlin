@@ -16,24 +16,42 @@ class DoctorController {
     fun getAllDoctors(): List<Doctor> = doctorService.getAllDoctors()
 
     @PostMapping(CreateDoctors)
-    fun createDoctor(
-            @RequestBody @Validated request: CreateDoctorRequest
-    ): CreateDoctorResponse = doctorService.createDoctor(request)
+    fun createDoctor(@RequestBody @Validated request: CreateDoctorRequest): ResponseEntity<DoctorResponse> {
+        return try {
+            ResponseEntity(doctorService.createDoctor(request), HttpStatus.CREATED)
+        } catch (e: Error) {
+            ResponseEntity(DoctorResponse(message=e.message), HttpStatus.BAD_REQUEST)
+        }
+    }
 
     @GetMapping(GetDoctorById)
-    fun getDoctorById(
-            @PathVariable("id") id: Long
-    ): List<Doctor> = doctorService.getDoctorById(id)
+    fun getDoctorById(@PathVariable("id") id: Long): DoctorResponse {
+        return try{
+            DoctorResponse("Doctor $id found", doctorService.getDoctorById(id))
+        }catch(e: Error){
+            DoctorResponse(e.message)
+        }
+    }
 
     @PutMapping(UpdateDoctor)
     fun updateDoctor(
         @PathVariable("id") id: Long,
-        @RequestBody @Validated request: CreateDoctorRequest
-    ): String  = doctorService.updateDoctor(id, request)
+        @RequestBody @Validated request: UpdateDoctorRequest
+    ): ResponseEntity<DoctorResponse> {
+        return try{
+            ResponseEntity(doctorService.updateDoctor(id, request), HttpStatus.ACCEPTED)
+        }catch (e: Error){
+            ResponseEntity(DoctorResponse(message=e.message), HttpStatus.BAD_REQUEST)
+        }
+    }
 
-    @DeleteMapping(DeleteDoctor)
-    fun deleteDoctor(
-            @PathVariable("id") id: Long
-    ): String = doctorService.deleteDoctor(id)
+     @DeleteMapping(DeleteDoctor)
+    fun deleteDoctor(@PathVariable("id") id: Long): ResponseEntity<DoctorResponse> {
+        return try{
+            ResponseEntity(doctorService.deleteDoctor(id), HttpStatus.ACCEPTED)
+        }catch (e: Error){
+            ResponseEntity(DoctorResponse(message=e.message), HttpStatus.BAD_REQUEST)
+        }
+    }
 
 }

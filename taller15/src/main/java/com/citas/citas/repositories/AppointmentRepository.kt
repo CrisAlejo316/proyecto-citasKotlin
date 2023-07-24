@@ -8,13 +8,13 @@ import org.springframework.transaction.annotation.Transactional
 
 interface AppointmentRepository: JpaRepository<Appointment, Long> {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Query("select * from citas where id_citas = :id", nativeQuery = true)
+    @Query("select * from citas where id_cita = :id", nativeQuery = true)
     fun getAppointmentById(id:Long):List<Appointment>
-
-    @Query("delete from citas where id_citas =:id", nativeQuery = true)
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Query("delete from citas where id_cita =:id", nativeQuery = true)
     fun deleteAppointmentByById(id: Long): Unit
-
-    @Query("select especialidad from citas where id_doctor = :id", nativeQuery = true)
-    fun getDoctorpecialidad(id: Long): String
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Query("select especialidad from doctores where id_doctor = :id", nativeQuery = true)
+    fun getDoctorEspecialidad(id: Long): String
 
 }

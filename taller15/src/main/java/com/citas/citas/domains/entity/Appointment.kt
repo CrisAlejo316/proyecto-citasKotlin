@@ -9,8 +9,9 @@ import jakarta.persistence.Table
 @Table(name="citas")
 open class Appointment (
         @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(name=" id_cita")
-        open var idcita: Long=0,
+        open var idcita: Long=1,
 
         @Column(name="horario")
         open var horario: String,
